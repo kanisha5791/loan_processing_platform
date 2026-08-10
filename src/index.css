@@ -1,0 +1,36 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(to right, #f8fafc, #e2e8f0);
+  color: #111827;
+}
+
+a {
+  text-decoration: none;
+}
+
+button {
+  font-family: "Poppins", sans-serif;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+.card {
+  border: none;
+  border-radius: 15px;
+}
