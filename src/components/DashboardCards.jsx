@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-function DashboardCards() {
+function DashboardCards({ refresh }) {
   const [stats, setStats] = useState({
     total: 0,
     approved: 0,
@@ -9,24 +9,38 @@ function DashboardCards() {
   });
 
   useEffect(() => {
-    fetch("http://localhost:8080/loan")
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/loan");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch loan data");
+        }
+
+        const data = await response.json();
+
         setStats({
           total: data.length,
+
           approved: data.filter(
             (loan) => loan.status === "Approved"
           ).length,
+
           pending: data.filter(
             (loan) => loan.status === "Pending"
           ).length,
+
           rejected: data.filter(
             (loan) => loan.status === "Rejected"
           ).length,
         });
-      })
-      .catch((err) => console.log(err));
-  }, []);
+      } catch (error) {
+        console.error("Dashboard Error:", error);
+      }
+    };
+
+    fetchStats();
+  }, [refresh]);
 
   const cards = [
     {
@@ -59,23 +73,34 @@ function DashboardCards() {
     <div className="container my-5">
       <div className="row">
         {cards.map((card, index) => (
-          <div className="col-md-3 mb-4" key={index}>
+          <div
+            className="col-md-3 mb-4"
+            key={index}
+          >
             <div
               className="card shadow-lg border-0 text-center p-4"
               style={{
                 borderRadius: "20px",
               }}
             >
-              <div style={{ fontSize: "50px" }}>{card.icon}</div>
+              <div
+                style={{
+                  fontSize: "50px",
+                }}
+              >
+                {card.icon}
+              </div>
 
               <h2
                 className="fw-bold mt-3"
-                style={{ color: card.color }}
+                style={{
+                  color: card.color,
+                }}
               >
                 {card.value}
               </h2>
 
-              <p className="text-muted fs-5">
+              <p className="text-muted fs-5 mb-0">
                 {card.title}
               </p>
             </div>

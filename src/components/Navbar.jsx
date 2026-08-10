@@ -1,13 +1,17 @@
-function Navbar() {
+function Navbar({ onHome, onApplyLoan, onViewLoans, onContact }) {
   return (
     <nav
-      className="navbar navbar-expand-lg navbar-dark shadow"
+      className="navbar navbar-expand-lg navbar-dark shadow sticky-top"
       style={{ backgroundColor: "#111827" }}
     >
       <div className="container">
-        <a className="navbar-brand fw-bold fs-4" href="#">
+
+        <button
+          className="navbar-brand fw-bold fs-4 border-0 bg-transparent text-white"
+          onClick={onHome}
+        >
           🏦 Loan Processing Platform
-        </a>
+        </button>
 
         <button
           className="navbar-toggler"
@@ -25,27 +29,39 @@ function Navbar() {
           <ul className="navbar-nav ms-auto">
 
             <li className="nav-item">
-              <a className="nav-link text-white" href="#">
+              <button
+                className="nav-link text-white bg-transparent border-0"
+                onClick={onHome}
+              >
                 Home
-              </a>
+              </button>
             </li>
 
             <li className="nav-item">
-              <a className="nav-link text-white" href="#">
+              <button
+                className="nav-link text-white bg-transparent border-0"
+                onClick={onApplyLoan}
+              >
                 Apply Loan
-              </a>
+              </button>
             </li>
 
             <li className="nav-item">
-              <a className="nav-link text-white" href="#">
+              <button
+                className="nav-link text-white bg-transparent border-0"
+                onClick={onViewLoans}
+              >
                 View Loans
-              </a>
+              </button>
             </li>
 
             <li className="nav-item">
-              <a className="nav-link text-white" href="#">
+              <button
+                className="nav-link text-white bg-transparent border-0"
+                onClick={onContact}
+              >
                 Contact
-              </a>
+              </button>
             </li>
 
           </ul>

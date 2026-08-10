@@ -1,4 +1,4 @@
-function Hero() {
+function Hero({ onApplyNow, onViewLoans }) {
   return (
     <section
       className="d-flex align-items-center"
@@ -21,6 +21,7 @@ function Hero() {
               }}
             >
               Welcome to <br />
+
               <span style={{ color: "#2563eb" }}>
                 Loan Processing Platform
               </span>
@@ -48,11 +49,19 @@ function Hero() {
 
             <div className="mt-4">
 
-              <button className="btn btn-dark btn-lg me-3">
+              {/* Apply Now */}
+              <button
+                className="btn btn-dark btn-lg me-3"
+                onClick={onApplyNow}
+              >
                 Apply Now
               </button>
 
-              <button className="btn btn-outline-dark btn-lg">
+              {/* View Loans */}
+              <button
+                className="btn btn-outline-dark btn-lg"
+                onClick={onViewLoans}
+              >
                 View Loans
               </button>
 
