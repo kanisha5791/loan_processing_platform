@@ -18,7 +18,6 @@ function LoanForm({
 
   const [loan, setLoan] = useState(emptyLoan);
 
-  // Load selected loan when Edit is clicked
   useEffect(() => {
     if (selectedLoan) {
       setLoan({
@@ -36,7 +35,6 @@ function LoanForm({
   }, [selectedLoan]);
 
   const handleSubmit = async () => {
-    // Basic validation
     if (
       !loan.customerName.trim() ||
       !loan.email.trim() ||
@@ -50,6 +48,13 @@ function LoanForm({
       return;
     }
 
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login again.");
+      return;
+    }
+
     const url = selectedLoan
       ? `http://localhost:8080/loan/${selectedLoan.id}`
       : "http://localhost:8080/loan";
@@ -59,9 +64,12 @@ function LoanForm({
     try {
       const response = await fetch(url, {
         method: method,
+
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
+
         body: JSON.stringify({
           customerName: loan.customerName,
           email: loan.email,
@@ -80,23 +88,29 @@ function LoanForm({
             : "Loan Submitted Successfully!"
         );
 
-        // Clear form
         setLoan(emptyLoan);
-
-        // Exit edit mode
         setSelectedLoan(null);
 
-        // Refresh loan table
         setRefresh((prev) => !prev);
       } else {
         const errorText = await response.text();
+
         console.error("Backend Error:", errorText);
 
-        alert(`Operation Failed! Status: ${response.status}`);
+        if (response.status === 401) {
+          alert("Session expired. Please login again.");
+        } else if (response.status === 403) {
+          alert("You are not authorized to perform this action.");
+        } else {
+          alert(`Operation Failed! Status: ${response.status}`);
+        }
       }
     } catch (error) {
       console.error("Server Error:", error);
-      alert("Server Error! Please check whether backend is running.");
+
+      alert(
+        "Unable to connect to the server. Please check whether Spring Boot is running."
+      );
     }
   };
 
@@ -114,7 +128,6 @@ function LoanForm({
 
         <div className="row">
 
-          {/* Customer Name */}
           <div className="col-md-6 mb-3">
             <label className="form-label">
               Customer Name
@@ -134,7 +147,6 @@ function LoanForm({
             />
           </div>
 
-          {/* Email */}
           <div className="col-md-6 mb-3">
             <label className="form-label">
               Email
@@ -154,7 +166,6 @@ function LoanForm({
             />
           </div>
 
-          {/* Phone */}
           <div className="col-md-6 mb-3">
             <label className="form-label">
               Phone Number
@@ -174,7 +185,6 @@ function LoanForm({
             />
           </div>
 
-          {/* Loan Amount */}
           <div className="col-md-6 mb-3">
             <label className="form-label">
               Loan Amount
@@ -194,7 +204,6 @@ function LoanForm({
             />
           </div>
 
-          {/* Loan Type */}
           <div className="col-md-6 mb-3">
             <label className="form-label">
               Loan Type
@@ -232,7 +241,6 @@ function LoanForm({
             </select>
           </div>
 
-          {/* Loan Term */}
           <div className="col-md-6 mb-3">
             <label className="form-label">
               Loan Term (Years)
@@ -252,7 +260,6 @@ function LoanForm({
             />
           </div>
 
-          {/* Status */}
           <div className="col-md-6 mb-3">
             <label className="form-label">
               Status
@@ -282,7 +289,6 @@ function LoanForm({
             </select>
           </div>
 
-          {/* Buttons */}
           <div className="text-center mt-3">
 
             <button

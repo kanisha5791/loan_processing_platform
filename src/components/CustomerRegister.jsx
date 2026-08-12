@@ -1,25 +1,32 @@
 import { useState } from "react";
 
-function CustomerLogin({ onLogin, onRegister }) {
+function CustomerRegister({ onRegister, onBackToLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      setError("Please enter email and password");
+    if (!email || !password || !confirmPassword) {
+      setMessage("Please fill all fields");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setMessage("Passwords do not match");
       return;
     }
 
     setLoading(true);
-    setError("");
+    setMessage("");
 
     try {
       const response = await fetch(
-        "http://localhost:8080/auth/login",
+        "http://localhost:8080/auth/register",
         {
           method: "POST",
           headers: {
@@ -35,30 +42,24 @@ function CustomerLogin({ onLogin, onRegister }) {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(
+        setMessage(
           typeof data === "string"
             ? data
-            : "Invalid email or password"
+            : "Registration failed"
         );
         setLoading(false);
         return;
       }
 
-      if (data.role !== "CUSTOMER") {
-        setError("This login is only for customers");
-        setLoading(false);
-        return;
-      }
+      setMessage("Registration successful!");
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("email", data.email);
-      localStorage.setItem("role", data.role);
-
-      onLogin(data);
+      setTimeout(() => {
+        onRegister();
+      }, 1000);
 
     } catch (error) {
       console.error(error);
-      setError("Unable to connect to the server");
+      setMessage("Unable to connect to server");
     }
 
     setLoading(false);
@@ -66,36 +67,28 @@ function CustomerLogin({ onLogin, onRegister }) {
 
   return (
     <div
-      className="d-flex justify-content-center align-items-center"
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg,#f8fafc,#dbeafe)",
+        background: "#dbeafe",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
       <div
-        className="card shadow-lg border-0 p-5"
         style={{
           width: "420px",
+          background: "white",
+          padding: "40px",
           borderRadius: "20px",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
         }}
       >
-        <div className="text-center mb-4">
+        <h2 className="text-center fw-bold mb-4">
+          👤 Customer Registration
+        </h2>
 
-          <div style={{ fontSize: "55px" }}>
-            👤
-          </div>
-
-          <h2 className="fw-bold">
-            Customer Login
-          </h2>
-
-          <p className="text-muted">
-            Login to apply and track your loan
-          </p>
-
-        </div>
-
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleRegister}>
 
           <label className="form-label fw-semibold">
             Email
@@ -116,14 +109,28 @@ function CustomerLogin({ onLogin, onRegister }) {
           <input
             type="password"
             className="form-control form-control-lg mb-3"
-            placeholder="Enter your password"
+            placeholder="Create password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          {error && (
-            <div className="alert alert-danger">
-              {error}
+          <label className="form-label fw-semibold">
+            Confirm Password
+          </label>
+
+          <input
+            type="password"
+            className="form-control form-control-lg mb-3"
+            placeholder="Confirm password"
+            value={confirmPassword}
+            onChange={(e) =>
+              setConfirmPassword(e.target.value)
+            }
+          />
+
+          {message && (
+            <div className="alert alert-info">
+              {message}
             </div>
           )}
 
@@ -132,31 +139,21 @@ function CustomerLogin({ onLogin, onRegister }) {
             className="btn btn-primary btn-lg w-100"
             disabled={loading}
           >
-            {loading
-              ? "Signing in..."
-              : "Customer Login"}
+            {loading ? "Registering..." : "Register"}
           </button>
-
-        </form>
-
-        <div className="text-center mt-4">
-
-          <p className="text-muted mb-2">
-            New customer?
-          </p>
 
           <button
             type="button"
-            className="btn btn-outline-primary w-100"
-            onClick={onRegister}
+            className="btn btn-outline-dark btn-lg w-100 mt-3"
+            onClick={onBackToLogin}
           >
-            Create New Customer Account
+            Back to Customer Login
           </button>
 
-        </div>
+        </form>
       </div>
     </div>
   );
 }
 
-export default CustomerLogin;
+export default CustomerRegister;

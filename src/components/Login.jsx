@@ -1,19 +1,67 @@
 import { useState } from "react";
 
 function Login({ onLogin }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (username === "admin" && password === "admin123") {
-      setError("");
-      onLogin();
-    } else {
-      setError("Invalid username or password");
+    if (!email || !password) {
+      setError("Please enter email and password");
+      return;
     }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(
+        "http://localhost:8080/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(
+          typeof data === "string"
+            ? data
+            : "Invalid email or password"
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Save JWT token
+      localStorage.setItem("token", data.token);
+
+      // Save logged-in user's email
+      localStorage.setItem("email", data.email);
+
+      // Save user's role
+      localStorage.setItem("role", data.role);
+
+      // Send login information to App.jsx
+      onLogin(data);
+
+    } catch (error) {
+      console.error("Login Error:", error);
+      setError("Unable to connect to the server");
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -21,7 +69,8 @@ function Login({ onLogin }) {
       className="d-flex justify-content-center align-items-center"
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg,#f8fafc,#dbeafe)",
+        background:
+          "linear-gradient(135deg,#f8fafc,#dbeafe)",
       }}
     >
       <div
@@ -32,7 +81,9 @@ function Login({ onLogin }) {
         }}
       >
         <div className="text-center mb-4">
-          <div style={{ fontSize: "55px" }}>🏦</div>
+          <div style={{ fontSize: "55px" }}>
+            🏦
+          </div>
 
           <h2 className="fw-bold">
             Admin Login
@@ -44,19 +95,26 @@ function Login({ onLogin }) {
         </div>
 
         <form onSubmit={handleLogin}>
+
+          {/* EMAIL */}
+
           <div className="mb-3">
             <label className="form-label fw-semibold">
-              Username
+              Email
             </label>
 
             <input
-              type="text"
+              type="email"
               className="form-control form-control-lg"
-              placeholder="Enter username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter admin email"
+              value={email}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
             />
           </div>
+
+          {/* PASSWORD */}
 
           <div className="mb-3">
             <label className="form-label fw-semibold">
@@ -68,9 +126,13 @@ function Login({ onLogin }) {
               className="form-control form-control-lg"
               placeholder="Enter password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
             />
           </div>
+
+          {/* ERROR */}
 
           {error && (
             <div className="alert alert-danger">
@@ -78,12 +140,18 @@ function Login({ onLogin }) {
             </div>
           )}
 
+          {/* LOGIN BUTTON */}
+
           <button
             type="submit"
             className="btn btn-dark btn-lg w-100 mt-2"
+            disabled={loading}
           >
-            Login
+            {loading
+              ? "Signing in..."
+              : "Login"}
           </button>
+
         </form>
       </div>
     </div>

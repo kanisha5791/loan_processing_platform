@@ -4,34 +4,43 @@ function LoanTable({ setSelectedLoan, refresh }) {
   const [loans, setLoans] = useState([]);
   const [search, setSearch] = useState("");
 
-  // FETCH LOANS
   useEffect(() => {
     const fetchLoans = async () => {
       try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          console.error("No JWT token found");
+          setLoans([]);
+          return;
+        }
+
         let url = "http://localhost:8080/loan";
 
         if (search.trim() !== "") {
-          url = `http://localhost:8080/loan/customer/${encodeURIComponent(
+          url = `http://localhost:8080/loan/search?customerName=${encodeURIComponent(
             search.trim()
           )}`;
         }
 
-        console.log("Fetching:", url);
-
-        const response = await fetch(url);
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
 
         if (!response.ok) {
+          console.error("Fetch failed:", response.status);
           setLoans([]);
           return;
         }
 
         const data = await response.json();
 
-        console.log("Response:", data);
-
         setLoans(Array.isArray(data) ? data : [data]);
       } catch (error) {
-        console.error(error);
+        console.error("Fetch Error:", error);
         setLoans([]);
       }
     };
@@ -39,17 +48,22 @@ function LoanTable({ setSelectedLoan, refresh }) {
     fetchLoans();
   }, [refresh, search]);
 
-  // DELETE LOAN
+  // DELETE
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this loan?")) {
       return;
     }
 
     try {
+      const token = localStorage.getItem("token");
+
       const response = await fetch(
         `http://localhost:8080/loan/${id}`,
         {
           method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
         }
       );
 
@@ -60,40 +74,24 @@ function LoanTable({ setSelectedLoan, refresh }) {
           prev.filter((loan) => loan.id !== id)
         );
       } else {
-        alert("Delete Failed!");
+        alert(`Delete Failed! Status: ${response.status}`);
       }
     } catch (error) {
-      console.error(error);
-      alert("Server Error!");
+      console.error("Delete Error:", error);
+      alert("Server Error while deleting loan!");
     }
   };
 
-  // EDIT LOAN - GET FULL DETAILS
-  const handleEdit = async (id) => {
-    try {
-      const response = await fetch(
-        `http://localhost:8080/loan/${id}`
-      );
-
-      if (!response.ok) {
-        alert("Loan details not found!");
-        return;
-      }
-
-      const fullLoan = await response.json();
-
-      console.log("Full Loan Details:", fullLoan);
-
-      setSelectedLoan(fullLoan);
-    } catch (error) {
-      console.error(error);
-      alert("Failed to load loan details!");
-    }
+  // EDIT
+  const handleEdit = (loan) => {
+    setSelectedLoan(loan);
   };
 
   // UPDATE STATUS
   const handleStatusChange = async (loan, newStatus) => {
     try {
+      const token = localStorage.getItem("token");
+
       const updatedLoan = {
         ...loan,
         status: newStatus,
@@ -105,6 +103,7 @@ function LoanTable({ setSelectedLoan, refresh }) {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
           },
           body: JSON.stringify(updatedLoan),
         }
@@ -121,16 +120,13 @@ function LoanTable({ setSelectedLoan, refresh }) {
 
         alert("Status Updated Successfully!");
       } else {
-        const errorText = await response.text();
-
-        console.log("Status:", response.status);
-        console.log("Backend Error:", errorText);
-
-        alert(`Status Update Failed! Status: ${response.status}`);
+        alert(
+          `Status Update Failed! Status: ${response.status}`
+        );
       }
     } catch (error) {
-      console.error(error);
-      alert("Server Error!");
+      console.error("Status Error:", error);
+      alert("Server Error while updating status!");
     }
   };
 
@@ -144,7 +140,6 @@ function LoanTable({ setSelectedLoan, refresh }) {
           Recent Loan Applications
         </h2>
 
-        {/* SEARCH */}
         <div className="mb-3">
           <input
             type="text"
@@ -155,7 +150,6 @@ function LoanTable({ setSelectedLoan, refresh }) {
           />
         </div>
 
-        {/* TABLE */}
         <table className="table table-hover text-center">
           <thead className="table-dark">
             <tr>
@@ -180,7 +174,6 @@ function LoanTable({ setSelectedLoan, refresh }) {
 
                   <td>₹{loan.loanAmount}</td>
 
-                  {/* STATUS */}
                   <td>
                     <select
                       className={
@@ -212,17 +205,14 @@ function LoanTable({ setSelectedLoan, refresh }) {
                     </select>
                   </td>
 
-                  {/* ACTIONS */}
                   <td>
-                    {/* EDIT */}
                     <button
                       className="btn btn-primary btn-sm me-2"
-                      onClick={() => handleEdit(loan.id)}
+                      onClick={() => handleEdit(loan)}
                     >
                       Edit
                     </button>
 
-                    {/* DELETE */}
                     <button
                       className="btn btn-danger btn-sm"
                       onClick={() =>
